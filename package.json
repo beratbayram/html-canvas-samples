@@ -1,0 +1,28 @@
+{
+  "name": "html-canvas-samples",
+  "version": "1.0.0",
+  "description": "Samples I created while learning HTML Canvas API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beratbayram/html-canvas-samples.git"
+  },
+  "keywords": [
+    "html",
+    "canvas"
+  ],
+  "author": "Berat BAYRAM",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/beratbayram/html-canvas-samples/issues"
+  },
+  "homepage": "https://github.com/beratbayram/html-canvas-samples#readme",
+  "devDependencies": {
+    "eslint": "^7.18.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1"
+  }
+}
