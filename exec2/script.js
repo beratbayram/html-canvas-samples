@@ -1,247 +1,196 @@
 const SIZE = 1000;
+const FRAME_RATE = 10;
 
-function removeOverlay() {
-	let element = document.getElementById("overlay")
-	element.style.display = "none";
+class Sound {
+	constructor(src) {
+		this.sound = document.createElement("audio");
+		this.sound.src = src;
+		this.sound.setAttribute("preload", "auto");
+		this.sound.setAttribute("controls", "none");
+		this.sound.style.display = "none";
+		document.body.appendChild(this.sound);
+	}
+	play() {
+		this.sound.play().catch(null); //suppress no auto sound policy
+	}
+	stop() {
+		this.sound.pause()
+	}
+}
+class Box {
+	constructor() {
+		this.sound = new Sound('https://www.w3schools.com/graphics/bounce.mp3')
+
+		this.posX = SIZE / 2;
+		this.posY = SIZE * 0.9;
+		this.stretchX = 0;
+		this.stretchY = 0;
+		this.posCounter = 0;
+		this.speed = 0.01;
+		this.isHappy = true;
+	}
+
+	getPos() {
+		const currSpeed = Math.sin(this.posCounter * 4) * 15;
+
+		this.posY -= currSpeed;
+		this.posCounter += this.speed;
+
+		this.isHappy = (this.posY > 800) ? false : true;
+		if (this.posY > 900) this.sound.play();
+
+		return {
+			x: this.posX,
+			y: this.posY
+		}
+	}
+
+	getShape() {
+		const currSpeed = Math.sin(this.posCounter * 4) * 15;
+
+
+		this.stretchX = -Math.abs(currSpeed);
+		this.stretchY = Math.abs(currSpeed) * 2;
+
+
+		return {
+			x: -100 - this.stretchX,
+			y: -75 - this.stretchY,
+			w: 200 + 2 * this.stretchX,
+			h: 150 + 2 * this.stretchY,
+		}
+	}
 }
 
+// eslint-disable-next-line no-unused-vars
 function main() {
-	removeOverlay();
-	drawScene();
-}
-
-function drawScene() {
-
-}
-/*
-function drawScene() {
-	let canvas = document.getElementById("myCanvas")
-	let ctx = canvas.getContext("2d");
+	const canvas = document.getElementById('myCanvas');
+	const ctx = canvas.getContext('2d');
 
 	canvas.width = SIZE;
 	canvas.height = SIZE;
+
+	// move origin to downleft corner
+	ctx.save();
+	ctx.translate(0, SIZE);
+	ctx.scale(1, -1);
+
+	const box = new Box();
+	setInterval(drawScene, FRAME_RATE, [ctx, box]);
+}
+
+function drawScene([ctx, box]) {
 	drawBackground(ctx);
 
-	let properties = {
-		levels: 6,
-		wallColor: 'brown',
-		roofColor: null,
-		door: true
-	}
-	properties.roofColor = getRandomColor();
-	drawHouse(ctx, [SIZE * 0.85, SIZE * 0.6], SIZE * 0.2, properties);
+	const pos = box.getPos();
+	const rect = box.getShape();
 
-	properties.roofColor = getRandomColor();
-	drawHouse(ctx, [SIZE * 0.6, SIZE * 0.7], SIZE * 0.3, properties);
-
-
-	drawTree(ctx, [SIZE * 0.14, SIZE * 0.8], SIZE * 0.4, properties);
-
-
-	properties.roofColor = getRandomColor();
-	drawHouse(ctx, [SIZE * 0.34, SIZE * 0.8], SIZE * 0.4, properties);
-
-	for (let index = 0; index < randomIntFromInterval(1, 10); index++)
-		drawCloud(ctx, getRandomCloudProperties());
-
-	drawSun(ctx);
-	drawMainRoad(ctx);
+	drawRope(ctx, pos.y);
+	drawBox(ctx, pos, rect);
+	drawFace(ctx, pos, box.isHappy);
+	drawTexts(ctx);
 
 }
-function drawMainRoad(ctx)
-{
+function drawTexts(ctx) {
 	ctx.save();
-	ctx.fillStyle = "gray";
-	ctx.lineWidth = 0.01;
+	ctx.scale(1, -1);
+	ctx.font = "30px arial";
+	ctx.fillStyle = "#ffffff";
 
-	ctx.beginPath();
-	ctx.moveTo(SIZE, 650);
-	//ctx.lineTo(SIZE, 600);
-	ctx.quadraticCurveTo(700,700,300,SIZE);
-	ctx.lineTo(600,SIZE);
-	ctx.quadraticCurveTo(800,800,SIZE,700);
+	ctx.textAlign = "left"
+	ctx.fillText("Berat BAYRAM", 25, -250);
+	ctx.fillText("(324372)", 25, -200);
+	ctx.fillText("VWD Exercise 2", 25, -150);
 
-	// ctx.quadraticCurveTo(-0.2,0.3,0,0);
-	// ctx.moveTo(0, 0);
-	ctx.closePath();
-	ctx.fill();
-	ctx.stroke();
+	ctx.textAlign = "center"
+	ctx.fillText("Makes sound when it hits the ceiling (open console if it doesn't open)", SIZE / 2, -25);
+
+	ctx.textAlign = "right"
+	ctx.fillText("> Used Principles <", 975, -250);
+	ctx.fillText("Squash and stretch", 975, -200);
+	ctx.fillText("Secondary Action", 975, -150);
+
 	ctx.restore();
 }
-function randomIntFromInterval(min, max) { // min and max included
-	return Math.floor(Math.random() * (max - min + 1) + min);
-}
-function getRandomCloudProperties() {
-	return {
-		x: randomIntFromInterval(0, SIZE - 300),
-		y: randomIntFromInterval(0, SIZE * 0.5 - 200),
-		scale: Math.random() * 2
-	}
-}
 
-function drawCloud(ctx, { x, y, scale }) {
+function drawBox(ctx, pos, rect) {
 	ctx.save();
-	ctx.fillStyle = 'white';
 
-	ctx.beginPath();
+	ctx.fillStyle = 'black';
+	ctx.translate(pos.x, pos.y);
+	ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+
+	ctx.restore();
+}
+function drawFace(ctx, { x, y }, isHappy) {
+	ctx.save();
+
 	ctx.translate(x, y);
-	ctx.scale(scale, scale);
-	ctx.arc(0, 0, 25, 0, 2 * Math.PI);
-	ctx.arc(50, -10, 35, 0, 2 * Math.PI);
-	ctx.arc(100, 0, 25, 0, 2 * Math.PI);
-	ctx.rect(0, 0, 100, 25);
+	ctx.lineWidth = 5;
+
+	// Nose
+	ctx.fillStyle = 'red';
+	ctx.beginPath();
+	ctx.arc(0, 0, 10, 0, Math.PI * 2);
+	ctx.fill();
 	ctx.closePath();
 
-	ctx.fill();
+	// Mouth
+	ctx.beginPath();
+	if (isHappy)
+		ctx.arc(0, 20, 75, Math.PI * 1.2, Math.PI * 1.8);
+	else
+		ctx.arc(0, -100, 75, Math.PI * 0.2, Math.PI * 0.8);
+	ctx.strokeStyle = 'white';
+	ctx.stroke();
+	ctx.closePath();
+
+	// Right Eye
+	ctx.beginPath();
+	if (isHappy)
+		ctx.arc(40, 30, 15, 0, Math.PI);
+	else {
+		ctx.moveTo(50, 50);
+		ctx.lineTo(40, 40);
+		ctx.lineTo(50, 30);
+	}
+	ctx.stroke();
+	ctx.closePath();
+
+	// Left Eye
+	ctx.beginPath();
+	if (isHappy)
+		ctx.arc(-40, 30, 15, 0, Math.PI);
+	else {
+		ctx.moveTo(-50, 50);
+		ctx.lineTo(-40, 40);
+		ctx.lineTo(-50, 30);
+	}
+	ctx.stroke();
+	ctx.closePath();
+
 	ctx.restore();
 }
 
-function drawSun(ctx) {
+function drawRope(ctx, y) {
 	ctx.save();
-	ctx.fillStyle = 'rgba(255,255,0,1)';
-	ctx.strokeStyle = 'black';
-	//Sun itself
-	ctx.beginPath();
-	ctx.arc(SIZE, 0, 100, 0, 2 * Math.PI);
-	ctx.fill()
-	ctx.stroke();
 
-	ctx.fillStyle = 'rgba(255,255,0,0.5)';
+	ctx.fillStyle = 'gray';
+	const thickness = 15 - (975 - y) / 100;
+	ctx.fillRect(SIZE / 2 - thickness / 2, y, thickness, 975 - y);
 
-	ctx.translate(SIZE - 275, 0);
-	for (let index = 0; index < 6; index++) {
-		ctx.rect(0, 0, 150, 5);
-		ctx.translate(13, 83);
-		ctx.rotate(-0.1 * Math.PI);
-	}
-
-	// set line color
-	ctx.fill();
-	ctx.stroke();
-	ctx.closePath();
 	ctx.restore();
 }
 
 function drawBackground(ctx) {
-	ctx.beginPath();
-	ctx.fillStyle = "lightblue";
-	ctx.rect(0, 0, SIZE, SIZE * 0.5);
-	ctx.fill();
-
-	ctx.beginPath();
-	ctx.fillStyle = "green";
-	ctx.rect(0, SIZE * 0.5, SIZE, SIZE * 0.5);
-	ctx.fill();
-}
-
-function getRandomColor() {
-	let red = Math.floor(Math.random() * 255);
-	let green = Math.floor(Math.random() * 255);
-	let blue = Math.floor(Math.random() * 255);
-	return "rgba(" + red + "," + green + "," + blue + ",1)";
-}
-
-function drawHouse(ctx, location, scale, properties) {
-	ctx.beginPath();
-
 	ctx.save();
-	ctx.translate(location[0], location[1]);
-	ctx.scale(scale, scale);
-	ctx.lineWidth = 0.04;
 
-	ctx.fillStyle = properties.wallColor;
-
-	// walls of the house
-	for (let i = 1; i <= properties.levels; i++) {
-		ctx.beginPath();
-		ctx.rect(-0.5, -0.1, 1.0, 0.1);
-		ctx.stroke();
-		ctx.fill();
-		ctx.translate(0, -0.1);
-		//ctx.rotate((Math.random()-0.5)*0.2); // in radians
-		// 360 degrees is 2 PI radians
-	}
-
-	//roof
-	ctx.fillStyle = properties.roofColor;
-	ctx.translate(0, -0.01);
-	ctx.beginPath();
-	ctx.moveTo(-0.5, -0.0);
-	ctx.lineTo(+0.5, -0.0);
-	ctx.lineTo(+0.0, -0.4);
-	ctx.lineTo(-0.5, -0.0);
-	ctx.closePath();
-	ctx.stroke();
-	ctx.fill();
-
-	ctx.restore();
-
-	//door
-	if (properties.door == true) {
-		ctx.save();
-		ctx.translate(location[0], location[1]);
-		ctx.scale(scale, scale);
-		ctx.lineWidth = 0.01;
-
-		ctx.fillStyle = "black";
-		ctx.beginPath();
-		ctx.rect(0, -0.285, 0.2, 0.285);
-		ctx.stroke();
-		ctx.fill();
-
-		//road
-		ctx.restore();
-		ctx.save();
-
-
-		ctx.translate(location[0], location[1]);
-		ctx.fillStyle = "gray";
-		ctx.lineWidth = 0.01;
-		ctx.scale(scale, scale);
-
-		ctx.beginPath();
-		ctx.moveTo(0, 0);
-		ctx.lineTo(0.2, 0);
-		ctx.quadraticCurveTo(0,0.3,0.5,0.5);
-		ctx.lineTo(0,0.5);
-		ctx.quadraticCurveTo(-0.2,0.3,0,0);
-		ctx.moveTo(0, 0);
-		ctx.closePath();
-		ctx.fill();
-		ctx.restore();
-
-	}
-
-}
-
-function drawTree(ctx, location, scale, properties) {
-	ctx.beginPath();
-
-	ctx.save();
-	ctx.translate(location[0], location[1]);
-	ctx.scale(scale, scale);
-	ctx.lineWidth = 0.04;
-
-	ctx.fillStyle = properties.wallColor;
-
-	//trunk
-	ctx.beginPath();
-	ctx.rect(-0.1, -0.2, 0.02, 0.1);
-	ctx.stroke();
-	ctx.fill();
-
-	ctx.translate(-0.08, -0.1);
-
-	ctx.fillStyle = "rgba(0,255,0,1)";
-	ctx.beginPath();
-	ctx.moveTo(-0.2, -0.1);
-	ctx.lineTo(+0.2, -0.1);
-	ctx.lineTo(+0.0, -0.7);
-	ctx.lineTo(-0.2, -0.1);
-	ctx.closePath();
-	ctx.stroke();
-	ctx.fill();
+	ctx.fillStyle = 'SaddleBrown';
+	ctx.fillRect(0, 0, SIZE, 300);
+	ctx.fillStyle = 'LightBlue';
+	ctx.fillRect(0, 300, SIZE, SIZE - 300);
+	ctx.fillStyle = 'Brown';
+	ctx.fillRect(SIZE / 4, 975, SIZE / 2, 25);
 
 	ctx.restore();
 }
-*/
