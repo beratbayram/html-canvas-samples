@@ -1,23 +1,14 @@
 body{
 	padding:0px;
 	margin:0px;
-	/* background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(0,151,255,1) 100%); */
-	background-color: white;
+	background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(0,151,255,1) 100%);
     background-repeat: no-repeat;
     background-attachment: fixed;
 }
-#mainCanvas{
+canvas{
 	position:absolute;
 	top:50%;
-	left:30%;
-	transform:translate(-50%,-50%);
-	width:80vmin;
-	height:80vmin;
-}
-#bufferCanvas{
-	position:absolute;
-	top:50%;
-	left:70%;
+	left:50%;
 	transform:translate(-50%,-50%);
 	width:80vmin;
 	height:80vmin;
@@ -37,7 +28,6 @@ body{
 	border-radius:2vmin;
 	
 	font-size:3.3vmin;
-	text-align:center
 }
 
 a{
