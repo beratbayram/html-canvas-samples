@@ -1,3 +1,7 @@
+*{
+  color: white
+}
+
 body {
   padding: 0px;
   margin: 0px;
@@ -5,7 +9,7 @@ body {
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
-#mainCanvas, #form {
+#mainCanvas, #form, #gameover {
   background-color: white;
   border: 1px solid grey;
   position: absolute;
@@ -14,6 +18,23 @@ body {
   transform: translate(-50%, -50%);
   width: 80vmin;
   height: 80vmin;
+}
+
+button {
+  background-color: transparent;
+  color: white;
+  border: 1px solid white;
+  border-radius: 0px;
+}
+
+#gameover 
+{
+  font-size: x-large;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0,0,0,0.9);
 }
 
 #form {
@@ -28,6 +49,7 @@ body {
 input {
   padding: 1%;
   width: 30vw;
+  color: black;
 }
 
 #URL {
@@ -40,7 +62,7 @@ button {
 }
 
 #bufferCanvas {
-	height: 25% !important;
+	height: 25%;
   margin-left: auto;
   margin-right: auto;
   border: 1px solid;

@@ -52,6 +52,12 @@ class Position {
     return new Position(this.x, this.y);
   }
 
+  zero() {
+    this.x = 0;
+    this.y = 0;
+    return this;
+  }
+
   set(position) {
     this.x = position.x;
     this.y = position.y;
@@ -92,8 +98,15 @@ class Ball {
       this.pos.set(new Position(this.pos.x, 20));
     }
     if (SIZE + this.radius < this.pos.y) {
-      this.speed.reverseY();
       this.pos.set(this.defPos);
+      this.speed.zero();
+      this.color="transparent";
+      if (confirm("Game over :( Try again?")) {
+        location.reload();
+      } else {
+        document.getElementById("gameover").style.display = "flex";
+        console.log(document.getElementById("gameover").style.display)
+      }
     }
 
     return this;
