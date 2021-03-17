@@ -1,5 +1,33 @@
+function submitHandler(event) {
+  event.preventDefault();
+  document.getElementById("formOverlay").style.display = "none";
+  main(event.target[3].value, board);
+}
+
+function preview() {
+  const imgURL = document.getElementById("URL").value;
+  const resolution = document.getElementById("Resolution").value;
+  const tolerance = 100 - document.getElementById("Tolerance").value;
+
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.src = imgURL;
+
+  img.onload = () => {
+    board = new Board(img, tolerance, resolution);
+    document.getElementById("submit").disabled = false;
+  };
+}
+
+document.getElementById("form").addEventListener("submit", submitHandler);
+document.getElementById("preview").addEventListener("click", preview);
+
+//----------------------------------------------------------------
+
 const SIZE = 1000;
 const FPS = 60;
+let board = null;
+const bgColor = { r: 255, g: 255, b: 255, a: 255 };
 
 class Position {
   constructor(x, y) {
@@ -40,13 +68,12 @@ class Position {
     return this;
   }
 }
-
 class Ball {
-  constructor() {
-    this.pos = new Position(SIZE/2, SIZE-100);
+  constructor(speed) {
+    this.pos = new Position(SIZE / 2, SIZE - 50);
     this.defPos = this.pos.clone();
     this.color = "red";
-    this.speed = new Position(-3, -2).multiply(2);
+    this.speed = new Position(-3, -2).multiply(speed);
     this.radius = 10;
   }
 
@@ -55,12 +82,10 @@ class Ball {
     if (this.pos.x < this.radius * 2) {
       this.speed.reverseX();
       this.pos.set(new Position(20, this.pos.y));
-
     }
     if (SIZE - this.radius * 2 < this.pos.x) {
       this.speed.reverseX();
       this.pos.set(new Position(SIZE - 20, this.pos.y));
-
     }
     if (this.pos.y < this.radius) {
       this.speed.reverseY();
@@ -76,16 +101,16 @@ class Ball {
 }
 
 class Paddle {
-  constructor() {
+  constructor(speed) {
     this.width = 250;
     this.height = 25;
-    this.speed = 25;
+    this.speed = speed;
     this.color = "orange";
     this.pos = new Position(SIZE / 2 - this.width / 2, SIZE - 2 * this.height);
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "ArrowLeft" || event.key === "a") this.goLeft();
-      else if (event.key === "ArrowRight"|| event.key === "d") this.goRight();
+      else if (event.key === "ArrowRight" || event.key === "d") this.goRight();
     });
   }
 
@@ -109,10 +134,9 @@ class Paddle {
     if (this.pos.x < SIZE - this.width) this.pos.x += this.speed;
   }
 }
-
 class Board {
-  constructor(img) {
-    this.pixelArr = getPixelArr(img);
+  constructor(img, tolerance, resolution) {
+    this.pixelArr = getPixelArr(img, tolerance, resolution);
     this.boxSize = Math.round(
       SIZE / Math.max(this.pixelArr.length, this.pixelArr[0].length)
     );
@@ -166,26 +190,16 @@ class Board {
   }
 }
 
-document.body.onload = () => {
+function main(speed, board) {
   const canvas = document.getElementById("mainCanvas");
   const ctx = canvas.getContext("2d");
-  const imgURL =
-    "https://images.unsplash.com/photo-1590518226506-4c9b077392cc?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=751&q=80";
-
   canvas.width = SIZE;
   canvas.height = SIZE;
 
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.src = imgURL;
-
-  img.onload = () => {
-    const board = new Board(img);
-    const ball = new Ball();
-    const paddle = new Paddle();
-    setInterval(drawScene, 1000 / FPS, ctx, board, ball, paddle);
-  };
-};
+  const ball = new Ball(speed);
+  const paddle = new Paddle(speed * 10);
+  setInterval(drawScene, 1000 / FPS, ctx, board, ball, paddle);
+}
 
 function drawScene(ctx, board, ball, paddle) {
   board.ballHit(ball, ctx);
@@ -225,9 +239,26 @@ function drawBox(ctx, x, y, boxSize, color) {
   ctx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
 }
 
-function getPixelArr(img) {
+function getPixelArr(img, tolerance, resolution) {
   const canvas = document.getElementById("bufferCanvas");
   const ctx = canvas.getContext("2d");
+  canvas.onclick = (event) => {
+    const rect = event.target.getBoundingClientRect();
+    const location = [
+      Math.floor(
+        (canvas.width * (event.clientX - rect.left)) / (rect.right - rect.left)
+      ),
+      Math.floor(
+        (canvas.height * (event.clientY - rect.top)) / (rect.bottom - rect.top)
+      ),
+    ];
+    console.log(location);
+    var data = ctx.getImageData(location[0], location[1], 1, 1);
+    bgColor.r = data.data[0];
+    bgColor.g = data.data[1];
+    bgColor.b = data.data[2];
+    preview();
+  };
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   canvas.height = img.height / 10;
@@ -236,9 +267,44 @@ function getPixelArr(img) {
   canvas.height = img.height;
   canvas.width = img.width;
 
-  const size = 0.1;
-  const w = canvas.width * size;
-  const h = canvas.height * size;
+  switch (parseInt(resolution)) {
+    case 10:
+      resolution = 1;
+      break;
+    case 9:
+      resolution = 0.5;
+      break;
+    case 8:
+      resolution = 0.25;
+      break;
+    case 7:
+      resolution = 0.2;
+      break;
+    case 6:
+      resolution = 0.1;
+      break;
+    case 5:
+      resolution = 0.05;
+      break;
+    case 4:
+      resolution = 0.04;
+      break;
+    case 3:
+      resolution = 0.02;
+      break;
+    case 2:
+      resolution = 0.01;
+      break;
+    case 1:
+      resolution = 0.005;
+      break;
+    default:
+      alert(resolution);
+      break;
+  }
+
+  const w = canvas.width * resolution;
+  const h = canvas.height * resolution;
 
   ctx.drawImage(img, 0, 0, w, h);
   ctx.mozImageSmoothingEnabled = false;
@@ -246,17 +312,19 @@ function getPixelArr(img) {
   ctx.drawImage(canvas, 0, 0, w, h, 0, 0, canvas.width, canvas.height);
   let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   let data = imgData.data;
-  const tolerance = 55;
   for (let y = 0; y < canvas.height; y++) {
     for (let x = 0; x < canvas.width; x++) {
       const pixel = getPixelValue(data, canvas.width, x, y);
 
       if (
-        x > canvas.width - 1 / size || // prevent alignment issues
-        y > canvas.height - 1 / size ||
-        (pixel.red >= 255 - tolerance &&
-          pixel.green >= 255 - tolerance &&
-          pixel.blue >= 255 - tolerance)
+        x > canvas.width - 1 / resolution || // prevent alignment issues
+        y > canvas.height - 1 / resolution ||
+        (bgColor.r + tolerance >= pixel.red &&
+          pixel.red >= bgColor.r - tolerance &&
+          bgColor.g + tolerance >= pixel.blue &&
+          pixel.blue >= bgColor.g - tolerance &&
+          bgColor.b + tolerance >= pixel.green &&
+          pixel.green >= bgColor.b - tolerance)
       ) {
         // remove pixel
         data[(y * canvas.width + x) * 4 + 0] = 0;
@@ -272,9 +340,9 @@ function getPixelArr(img) {
 
   const result = [];
 
-  for (let y = 0; y < canvas.height; y += 1 / size) {
+  for (let y = 0; y < canvas.height; y += 1 / resolution) {
     const element = [];
-    for (let x = 0; x < canvas.width; x += 1 / size) {
+    for (let x = 0; x < canvas.width; x += 1 / resolution) {
       const pixel = getPixelValue(data, canvas.width, x, y);
       element.push({
         r: pixel.red,
@@ -285,6 +353,12 @@ function getPixelArr(img) {
     }
     result.push(element);
   }
+  const boxSize = Math.round(SIZE / Math.max(result.length, result[0].length));
+  const maxY = Math.round(600 / boxSize);
+
+  // avoid overflowing
+  if (maxY < result.length) while (maxY !== result.length) result.pop();
+
   return result;
 }
 
